@@ -2099,56 +2099,74 @@ public class ComputerUtil {
             return finalHandSize;
         }
 
-        final CardCollectionView lands = CardLists.filter(cardsInHand, c -> c.getManaCost().getCMC() <= 0 && !c.hasSVar("NeedsToPlay")
-                && (c.isLand() || c.isArtifact()));
+        final CardCollectionView lands = CardLists.filter(cardsInHand, card -> cardCostsZeroToCast(card) && !card.hasSVar("NeedsToPlay")
+                && (card.isLand() || card.isArtifact()));
 
-        final int handSize = cardsInHand.size();
-        final int landSize = lands.size();
+        final int numberOfCardsInHand = cardsInHand.size();
+        final int numberOfLandCardsInHand = lands.size();
         int score = cardsInHand.size();
         //adjust score for Living End decks
-        final CardCollectionView livingEnd = CardLists.filter(cardsInHand, c -> "Living End".equalsIgnoreCase(c.getName()));
-        if (livingEnd.size() > 0)
+        final CardCollectionView livingEnd = CardLists.filter(cardsInHand, card -> "Living End".equalsIgnoreCase(card.getName()));
+        if (!livingEnd.isEmpty())
             score = -(livingEnd.size() * 10);
 
-        if (handSize/2 == landSize || handSize/2 == landSize +1) {
+        if (halfOfCardsInHandRoundedDownIsLand(numberOfCardsInHand, numberOfLandCardsInHand) ||
+                        halfOfCardsInHandRoundedDownMinusOneIsLand(numberOfCardsInHand, numberOfLandCardsInHand)) {
             score += 10;
         }
 
-        final CardCollectionView castables = CardLists.filter(cardsInHand, c -> c.getManaCost().getCMC() <= 0 || c.getManaCost().getCMC() <= landSize);
+        final CardCollectionView castables = CardLists.filter(cardsInHand, card -> cardCostsZeroToCast(card) ||
+                cardCostIsEqualOrSmallerThanNumberOfLandCardsInHand(card, numberOfLandCardsInHand));
 
         score += castables.size() * 2;
 
         // Improve score for perceived mana efficiency of the hand
 
         // if at mulligan threshold, and we have any lands accept the hand
-        if (handSize == aic.getIntProperty(AiProps.MULLIGAN_THRESHOLD) && landSize > 0) {
+        if (numberOfCardsInHand == aic.getIntProperty(AiProps.MULLIGAN_THRESHOLD) && numberOfLandCardsInHand > 0) {
             return score;
         }
 
         // otherwise, reject bad hands or return score
-        if (landSize < 2) {
+        if (numberOfLandCardsInHand < 2) {
             // BAD Hands, 0 or 1 lands
-            if (landsInDeck == 0 || library.size()/landsInDeck > 6) {
+            if (library.size() / landsInDeck > 6) {
                 // Heavy spell deck it's ok
-                return handSize;
+                return numberOfCardsInHand;
             }
             return 0;
-        } else if (landSize == handSize) {
-            if (library.size()/landsInDeck < 2) {
+        } else if (numberOfLandCardsInHand == numberOfCardsInHand) {
+            if (library.size() / landsInDeck < 2) {
                 // Heavy land deck/Momir Basic it's ok
-                return handSize;
+                return numberOfCardsInHand;
             }
             return 0;
-        } else if (handSize >= 7 && landSize >= handSize-1) {
+        } else if (numberOfCardsInHand >= 7 && numberOfLandCardsInHand >= numberOfCardsInHand - 1) {
             // BAD Hands - Mana flooding
 
-            if (library.size()/landsInDeck < 2) {
+            if (library.size() / landsInDeck < 2) {
                 // Heavy land deck/Momir Basic it's ok
-                return handSize;
+                return numberOfCardsInHand;
             }
             return 0;
         }
         return score;
+    }
+
+    private static boolean halfOfCardsInHandRoundedDownIsLand(int numberOfCardsInHand, int numberOfLandCardsInHand) {
+        return numberOfCardsInHand / 2 == numberOfLandCardsInHand;
+    }
+
+    private static boolean halfOfCardsInHandRoundedDownMinusOneIsLand(int numberOfCardsInHand, int numberOfLandCardsInHand) {
+        return numberOfCardsInHand / 2 == numberOfLandCardsInHand + 1;
+    }
+
+    private static boolean cardCostsZeroToCast(Card card) {
+        return card.getManaCost().getCMC() <= 0;
+    }
+
+    private static boolean cardCostIsEqualOrSmallerThanNumberOfLandCardsInHand(Card card, int numberOfLandCardsInHand) {
+        return card.getManaCost().getCMC() <= numberOfLandCardsInHand;
     }
 
     // Computer mulligans if there are no cards with converted mana cost of 0 in its hand
