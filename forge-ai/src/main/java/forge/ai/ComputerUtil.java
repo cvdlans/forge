@@ -2091,8 +2091,9 @@ public class ComputerUtil {
             return finalHandSize;
         }
 
-        CardCollectionView library = ai.getCardsIn(ZoneType.Library);
-        int landsInDeck = CardLists.count(library, CardPredicates.LANDS);
+        CardCollectionView deck = ai.getCardsIn(ZoneType.Library);
+        deck.addAll(cardsInHand);
+        int landsInDeck = CardLists.count(deck, CardPredicates.LANDS);
 
         // no land deck, can't do anything better
         if (landsInDeck == 0) {
@@ -2130,13 +2131,13 @@ public class ComputerUtil {
         // otherwise, reject bad hands or return score
         if (numberOfLandCardsInHand < 2) {
             // BAD Hands, 0 or 1 lands
-            if (library.size() / landsInDeck > 6) {
+            if (deck.size() / landsInDeck > 6) {
                 // Heavy spell deck it's ok
                 return numberOfCardsInHand;
             }
             return 0;
         } else if (numberOfLandCardsInHand == numberOfCardsInHand) {
-            if (library.size() / landsInDeck < 2) {
+            if (deck.size() / landsInDeck < 2) {
                 // Heavy land deck/Momir Basic it's ok
                 return numberOfCardsInHand;
             }
@@ -2144,7 +2145,7 @@ public class ComputerUtil {
         } else if (numberOfCardsInHand >= 7 && numberOfLandCardsInHand >= numberOfCardsInHand - 1) {
             // BAD Hands - Mana flooding
 
-            if (library.size() / landsInDeck < 2) {
+            if (deck.size() / landsInDeck < 2) {
                 // Heavy land deck/Momir Basic it's ok
                 return numberOfCardsInHand;
             }
