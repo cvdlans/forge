@@ -2076,14 +2076,14 @@ public class ComputerUtil {
         return false;
     }
 
-    public static int scoreHand(CardCollectionView handList, Player ai, int cardsToReturn) {
+    public static int scoreHand(CardCollectionView cardsInHand, Player ai, int cardsToReturn) {
         // TODO Improve hand scoring in relation to cards to return.
         // If final hand size is 5, score a hand based on what that 5 would be.
         // Or if this is really really fast, determine what the 5 would be based on scoring
         // All of the possibilities
 
         final AiController aic = ((PlayerControllerAi)ai.getController()).getAi();
-        int currentHandSize = handList.size();
+        int currentHandSize = cardsInHand.size();
         int finalHandSize = currentHandSize - cardsToReturn;
 
         // don't mulligan when already too low
@@ -2099,14 +2099,14 @@ public class ComputerUtil {
             return finalHandSize;
         }
 
-        final CardCollectionView lands = CardLists.filter(handList, c -> c.getManaCost().getCMC() <= 0 && !c.hasSVar("NeedsToPlay")
+        final CardCollectionView lands = CardLists.filter(cardsInHand, c -> c.getManaCost().getCMC() <= 0 && !c.hasSVar("NeedsToPlay")
                 && (c.isLand() || c.isArtifact()));
 
-        final int handSize = handList.size();
+        final int handSize = cardsInHand.size();
         final int landSize = lands.size();
-        int score = handList.size();
+        int score = cardsInHand.size();
         //adjust score for Living End decks
-        final CardCollectionView livingEnd = CardLists.filter(handList, c -> "Living End".equalsIgnoreCase(c.getName()));
+        final CardCollectionView livingEnd = CardLists.filter(cardsInHand, c -> "Living End".equalsIgnoreCase(c.getName()));
         if (livingEnd.size() > 0)
             score = -(livingEnd.size() * 10);
 
@@ -2114,7 +2114,7 @@ public class ComputerUtil {
             score += 10;
         }
 
-        final CardCollectionView castables = CardLists.filter(handList, c -> c.getManaCost().getCMC() <= 0 || c.getManaCost().getCMC() <= landSize);
+        final CardCollectionView castables = CardLists.filter(cardsInHand, c -> c.getManaCost().getCMC() <= 0 || c.getManaCost().getCMC() <= landSize);
 
         score += castables.size() * 2;
 
@@ -2153,17 +2153,17 @@ public class ComputerUtil {
 
     // Computer mulligans if there are no cards with converted mana cost of 0 in its hand
     public static boolean wantMulligan(Player ai, int cardsToReturn) {
-        final CardCollectionView handList = ai.getCardsIn(ZoneType.Hand);
-        return !handList.isEmpty() && scoreHand(handList, ai, cardsToReturn) <= 0;
+        final CardCollectionView cardsInHand = ai.getCardsIn(ZoneType.Hand);
+        return !cardsInHand.isEmpty() && scoreHand(cardsInHand, ai, cardsToReturn) <= 0;
     }
 
     public static CardCollection getPartialParisCandidates(Player ai) {
         // Commander no longer uses partial paris.
         final CardCollection candidates = new CardCollection();
-        final CardCollectionView handList = ai.getCardsIn(ZoneType.Hand);
+        final CardCollectionView cardsInHand = ai.getCardsIn(ZoneType.Hand);
 
-        final CardCollection lands = CardLists.getValidCards(handList, "Card.Land", ai, null, null);
-        final CardCollection nonLands = CardLists.getValidCards(handList, "Card.nonLand", ai, null, null);
+        final CardCollection lands = CardLists.getValidCards(cardsInHand, "Card.Land", ai, null, null);
+        final CardCollection nonLands = CardLists.getValidCards(cardsInHand, "Card.nonLand", ai, null, null);
         CardLists.sortByCmcDesc(nonLands);
 
         if (lands.size() >= 3 && lands.size() <= 4) {
