@@ -2111,8 +2111,8 @@ public class ComputerUtil {
         if (!livingEnd.isEmpty())
             score = -(livingEnd.size() * 10);
 
-        if (halfOfCardsInHandRoundedDownIsLand(numberOfCardsInHand, numberOfLandCardsInHand) ||
-                        halfOfCardsInHandRoundedDownMinusOneIsLand(numberOfCardsInHand, numberOfLandCardsInHand)) {
+        if (halfOfCardsInHandIsLand(numberOfCardsInHand, numberOfLandCardsInHand) ||
+                        halfOfCardsInHandMinusOneIsLand(numberOfCardsInHand, numberOfLandCardsInHand)) {
             score += 10;
         }
 
@@ -2154,12 +2154,12 @@ public class ComputerUtil {
         return score;
     }
 
-    private static boolean halfOfCardsInHandRoundedDownIsLand(int numberOfCardsInHand, int numberOfLandCardsInHand) {
-        return numberOfCardsInHand / 2 == numberOfLandCardsInHand;
+    private static boolean halfOfCardsInHandIsLand(int numberOfCardsInHand, int numberOfLandCardsInHand) {
+        return Math.floor((double) numberOfCardsInHand / 2) == numberOfLandCardsInHand;
     }
 
-    private static boolean halfOfCardsInHandRoundedDownMinusOneIsLand(int numberOfCardsInHand, int numberOfLandCardsInHand) {
-        return numberOfCardsInHand / 2 == numberOfLandCardsInHand + 1;
+    private static boolean halfOfCardsInHandMinusOneIsLand(int numberOfCardsInHand, int numberOfLandCardsInHand) {
+        return Math.floor((double) numberOfCardsInHand / 2) - 1 == numberOfLandCardsInHand;
     }
 
     private static boolean cardCostsZeroToCast(Card card) {
